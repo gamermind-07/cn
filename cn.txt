@@ -1,0 +1,293 @@
+1 Simulation of Bit Stuffing 
+
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    int i = 0, count = 0;
+    char databits[80];
+
+    printf("Enter Data Bits: ");
+    scanf("%s", databits);
+
+    printf("Data Bits Before Bit Stuffing: %s\n", databits);
+    printf("Data Bits After Bit Stuffing: ");
+
+    for (i = 0; i < strlen(databits); i++) {
+        printf("%c", databits[i]);
+
+        if (databits[i] == '1') {
+            count++;
+        } else {
+            count = 0;
+        }
+
+        if (count == 5) {
+            printf("0");  // Stuff a 0 after five 1's
+            count = 0;
+        }
+    }
+
+    printf("\n");
+    return 0;
+}
+
+2 byte stuffing
+
+#include <stdio.h>
+#include <string.h>
+
+#define FLAG 0x7E
+#define ESC  0x7D
+
+void byteStuffing(unsigned char *data, int *size) {
+    unsigned char stuffedData[200];  // Increased size for safety
+    int j = 0;
+
+    for (int i = 0; i < *size; i++) {
+        if (data[i] == FLAG || data[i] == ESC) {
+            stuffedData[j++] = ESC;
+            stuffedData[j++] = data[i] ^ 0x20;
+        } else {
+            stuffedData[j++] = data[i];
+        }
+    }
+
+    *size = j;
+    memcpy(data, stuffedData, *size);
+}
+
+void byteDestuffing(unsigned char *data, int *size) {
+    unsigned char destuffedData[200];
+    int j = 0;
+
+    for (int i = 0; i < *size; i++) {
+        if (data[i] == ESC) {
+            i++;
+            destuffedData[j++] = data[i] ^ 0x20;
+        } else {
+            destuffedData[j++] = data[i];
+        }
+    }
+
+    *size = j;
+    memcpy(data, destuffedData, *size);
+}
+
+void printData(unsigned char *data, int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%02X ", data[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    unsigned char data[] = { 0x7E, 0x45, 0x7D, 0x7E, 0x4A, 0x5C };
+    int size = sizeof(data) / sizeof(data[0]);
+
+    printf("Original Data: ");
+    printData(data, size);
+
+    byteStuffing(data, &size);
+    printf("\nStuffed Data: ");
+    printData(data, size);
+
+    byteDestuffing(data, &size);
+    printf("\nDestuffed Data: ");
+    printData(data, size);
+
+    return 0;
+}
+
+3 Cyclic Redundancy Code
+Code for Transmitter End [C++]
+ 
+#include <iostream>
+using namespace std;
+
+int main() {
+    string msg, crc, encoded = "";
+
+    cout << "Enter the Data: ";
+    getline(cin, msg);
+
+    cout << "Enter the Generator Polynomial: ";
+    getline(cin, crc);
+
+    int m = msg.length(), n = crc.length();
+
+    // Append n-1 zeros to the message
+    encoded = msg;
+    for (int i = 1; i <= n - 1; i++) {
+        encoded += "0";
+    }
+
+    // Perform division
+    for (int i = 0; i <= encoded.length() - n;) {
+        for (int j = 0; j < n; j++) {
+            encoded[i + j] = encoded[i + j] == crc[j] ? '0' : '1';
+        }
+
+        // Move to next '1'
+        while (i < encoded.length() && encoded[i] != '1') {
+            i++;
+        }
+    }
+
+    string remainder = encoded.substr(encoded.length() - n + 1);
+    string transmitted = msg + remainder;
+
+    cout << "\n###### Transmitter End ######\n";
+    cout << "The Input Data = " << msg << endl;
+    cout << "The Generator Polynomial = " << crc << endl;
+    cout << "The Remainder = " << remainder << endl;
+    cout << "The Data Transmitted with Remainder = " << transmitted << endl;
+
+    return 0;
+}
+code for receiver c++
+#include <iostream>
+using namespace std;
+
+int main() {
+    string crc, encoded;
+
+    cout << "Enter the Data Received: ";
+    getline(cin, encoded);
+
+    cout << "Enter the Generator Polynomial: ";
+    getline(cin, crc);
+
+    cout << "\n###### Receiver End ######\n";
+    cout << "Data Received = " << encoded << endl;
+
+    int n = crc.length();
+
+    // Perform division
+    for (int i = 0; i <= encoded.length() - n;) {
+        for (int j = 0; j < n; j++) {
+            encoded[i + j] = encoded[i + j] == crc[j] ? '0' : '1';
+        }
+
+        // Move to the next '1'
+        while (i < encoded.length() && encoded[i] != '1') {
+            i++;
+        }
+    }
+
+    string remainder = encoded.substr(encoded.length() - n + 1);
+    cout << "Divide with Polynomial = " << crc << endl;
+    cout << "Remainder = " << remainder << endl;
+
+    // Check if remainder contains all zeros
+    bool error = false;
+    for (char bit : remainder) {
+        if (bit != '0') {
+            error = true;
+            break;
+        }
+    }
+
+    if (error) {
+        cout << "Error in communication.\n";
+    } else {
+        cout << "No Error. Data is valid.\n";
+    }
+
+    return 0;
+}
+
+4 cpp program to implement leakybucket : 
+
+#include <iostream>
+using namespace std;
+
+int main() {
+    int no_of_queries = 4;
+    int bucket_size = 10;
+    int output_pkt_size = 1;
+    int input_pkt_size;
+    int storage = 0;
+
+    for (int i = 0; i < no_of_queries; i++) {
+        cout << "\nEnter incoming packet size at query " << i + 1 << ": ";
+        cin >> input_pkt_size;
+
+        int size_left = bucket_size - storage;
+
+        if (input_pkt_size <= size_left) {
+            storage += input_pkt_size;
+            cout << "Buffer size = " << storage << " out of bucket size = " << bucket_size << endl;
+        } else {
+            cout << "Packet loss = " << (input_pkt_size - size_left) << endl;
+            storage = bucket_size;
+            cout << "Buffer size = " << storage << " out of bucket size = " << bucket_size << endl;
+        }
+
+        // Leak one packet per time unit
+        storage -= output_pkt_size;
+        if (storage < 0) storage = 0;
+    }
+
+    return 0;
+}
+
+5 Implementation of distance vector routing algorithm using C++. 
+
+#include <iostream>
+using namespace std;
+
+struct node {
+    unsigned dist[6];
+    unsigned from[6];
+} DVR[10];
+
+int main() {
+    int costmat[6][6];
+    int nodes;
+
+    cout << "\n\n-------------------- Distance Vector Routing Algorithm --------------------\n";
+    cout << "Enter the number of nodes: ";
+    cin >> nodes;
+
+    cout << "\nEnter the cost matrix:\n";
+    for (int i = 0; i < nodes; i++) {
+        for (int j = 0; j < nodes; j++) {
+            cin >> costmat[i][j];
+            costmat[i][i] = 0;
+            DVR[i].dist[j] = costmat[i][j];
+            DVR[i].from[j] = j;
+        }
+    }
+
+    // Distance Vector Algorithm
+    for (int i = 0; i < nodes; i++) {
+        for (int j = 0; j < nodes; j++) {
+            for (int k = 0; k < nodes; k++) {
+                if (DVR[i].dist[j] > costmat[i][k] + DVR[k].dist[j]) {
+                    DVR[i].dist[j] = costmat[i][k] + DVR[k].dist[j];
+                    DVR[i].from[j] = k;
+                }
+            }
+        }
+    }
+
+    // Output
+    for (int i = 0; i < nodes; i++) {
+        cout << "\n\nFor Router " << i + 1 << ":\n";
+        for (int j = 0; j < nodes; j++) {
+            cout << "To Node " << j + 1 
+                 << " via " << DVR[i].from[j] + 1 
+                 << " Distance: " << DVR[i].dist[j] << endl;
+        }
+    }
+
+    cout << endl;
+    return 0;
+}
+
+
+
+
+
+  
