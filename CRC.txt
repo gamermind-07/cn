@@ -1,0 +1,55 @@
+import java.util.Scanner;
+
+public class CRCTransmitter {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the Data: ");
+        String msg = scanner.nextLine();
+        System.out.print("Enter the Generator Polynomial: ");
+        String crc = scanner.nextLine();
+
+        int n = crc.length();
+        StringBuilder encoded = new StringBuilder(msg);
+        
+        // Append n-1 zeros
+        for(int i=0; i<n-1; i++) {
+            encoded.append("0");
+        }
+
+        char[] encodedArray = encoded.toString().toCharArray();
+        
+        // Perform binary division
+        int i = 0;
+        while(i <= encodedArray.length - n) {
+            // Skip leading zeros
+            while(i <= encodedArray.length - n && encodedArray[i] == '0') i++;
+            if(i > encodedArray.length - n) break;
+            
+            // XOR operation
+            for(int j=0; j<n; j++) {
+                encodedArray[i+j] = (encodedArray[i+j] == crc.charAt(j)) ? '0' : '1';
+            }
+        }
+
+        // Get remainder (last n-1 bits)
+        String remainder = new String(encodedArray).substring(encodedArray.length - (n-1));
+        
+        System.out.println("\n###### Transmitter End ####");
+        System.out.println("1. Input Polynomial: " + crc);
+        System.out.println("2. Data to be Transmitted: " + msg);
+        System.out.println("3. Added Padding Bits: " + encoded);
+        System.out.println("4. Remainder: " + remainder);
+        System.out.println("5. Data Transmitted with Reminder: " + msg + remainder);
+    }
+}
+
+--------------------------------------------------------------
+
+Enter the Data: 1001
+Enter the Generator Polynomial: 1011
+###### Transmitter End ####
+1. Input Polynomial: 1011
+2. Data to be Transmitted: 1001
+3. Added Padding Bits: 1001000
+4. Remainder: 110
+5. Data Transmitted with Reminder: 1001110

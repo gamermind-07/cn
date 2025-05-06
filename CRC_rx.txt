@@ -1,0 +1,54 @@
+import java.util.Scanner;
+
+public class ReceiverEndSimple {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter Data Received: ");
+        String data = sc.nextLine().trim();
+
+        System.out.print("Enter Generator Polynomial: ");
+        String poly = sc.nextLine().trim();
+
+        System.out.println("\n###### Receiver End ####");
+        System.out.println("Data Received = " + data);
+
+        int m = poly.length();
+        String temp = data;
+
+        // Slide over the data bits
+        for (int i = 0; i <= temp.length() - m; i++) {
+            // If bit is '1', XOR with poly
+            if (temp.charAt(i) == '1') {
+                StringBuilder sb = new StringBuilder(temp);
+                for (int j = 0; j < m; j++) {
+                    char bit = sb.charAt(i + j) == poly.charAt(j) ? '0' : '1';
+                    sb.setCharAt(i + j, bit);
+                }
+                temp = sb.toString();
+            }
+        }
+
+        // Remainder is last m-1 bits
+        String remainder = temp.substring(temp.length() - (m - 1));
+        System.out.println("Divide with Polynomial = " + poly);
+        System.out.println("Remainder = " + remainder);
+
+        // Check remainder for errors
+        if (remainder.contains("1")) {
+            System.out.println("Error in communication");
+        } else {
+            System.out.println("No Error");
+        }
+
+        sc.close();
+    }
+}
+----------------------------------------------------------------
+Enter Data Received: 000010000000
+Enter Generator Polynomial: 10011
+###### Receiver End ####
+Data Received = 000010000000
+Divide with Polynomial = 10011
+Remainder = 1011
+Error in communication

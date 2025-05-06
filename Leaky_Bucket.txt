@@ -1,0 +1,49 @@
+public class LeakyBucket {
+    public static void main(String[] args) {
+        // Configuration parameters (same as in the C++ example)
+        int noOfQueries     = 4;   // how many times we check the bucket
+        int bucketSize      = 10;  // maximum capacity of the bucket
+        int inputPktSize    = 4;   // packets arriving each time
+        int outputPktSize   = 1;   // packets leaving each time
+
+        int storage = 0; // current number of packets in the bucket
+
+        for (int i = 0; i < noOfQueries; i++) {
+            // how much free space is left
+            int spaceLeft = bucketSize - storage;
+
+            // incoming packets
+            if (inputPktSize <= spaceLeft) {
+                storage += inputPktSize;
+                System.out.printf(
+                    "Buffer size = %d out of bucket size = %d%n",
+                    storage, bucketSize
+                );
+            } else {
+                // overflow → packets lost
+                int lost = inputPktSize - spaceLeft;
+                System.out.printf(
+                    "Packet loss = %d%n", lost
+                );
+                // bucket just fills up
+                storage = bucketSize;
+                System.out.printf(
+                    "Buffer size = %d out of bucket size = %d%n",
+                    storage, bucketSize
+                );
+            }
+
+            // leaking: packets leave the bucket
+            storage -= outputPktSize;
+            if (storage < 0) {
+                storage = 0;  // can't go below zero
+            }
+        }
+    }
+}
+------------------------------
+
+Buffer size = 4 out of bucket size = 10
+Buffer size = 7 out of bucket size = 10
+Buffer size = 10 out of bucket size = 10Packet loss = 3
+Buffer size = 10 out of bucket size = 10

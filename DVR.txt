@@ -1,0 +1,55 @@
+import java.util.Scanner;
+
+public class DistanceVectorRouting {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\n-------------------- Distance Vector Routing Algorithm --------------------");
+        System.out.print("Enter the number of nodes: ");
+        int n = sc.nextInt();
+
+        int[][] cost = new int[n][n];
+        int[][] dist = new int[n][n];
+        int[][] via  = new int[n][n];
+
+        System.out.println("\nEnter the cost matrix (rows of " + n + " ints):");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cost[i][j] = sc.nextInt();
+                if (i == j) {
+                    cost[i][j] = 0;   // self‐cost = 0
+                }
+                dist[i][j] = cost[i][j];
+                via[i][j]  = j;      // initial next hop = j
+            }
+        }
+
+        // Bellman–Ford–style relaxation
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    int throughK = dist[i][k] + dist[k][j];
+                    if (throughK < dist[i][j]) {
+                        dist[i][j] = throughK;
+                        via[i][j]  = via[i][k];
+                    }
+                }
+            }
+        }
+
+        // Print in requested format
+        for (int i = 0; i < n; i++) {
+            System.out.println("\nFor router: " + (i + 1));
+            for (int j = 0; j < n; j++) {
+                System.out.printf(
+                    "node %d via %d Distance %d%n",
+                    (j + 1),
+                    (via[i][j] + 1),
+                    dist[i][j]
+                );
+            }
+        }
+
+        sc.close();
+    }
+}

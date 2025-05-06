@@ -1,0 +1,67 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class ByteStuffing {
+    private static final byte FLAG = (byte) 0x7E;
+    private static final byte ESC = (byte) 0x7D;
+
+    public static byte[] byteStuffing(byte[] data) {
+        List<Byte> stuffedData = new ArrayList<>();
+        for (byte b : data) {
+            if (b == FLAG || b == ESC) {
+                stuffedData.add(ESC);
+                stuffedData.add((byte) (b ^ 0x20));
+            } else {
+                stuffedData.add(b);
+            }
+        }
+        return convertListToArray(stuffedData);
+    }
+
+    public static byte[] byteDestuffing(byte[] data) {
+        List<Byte> destuffedData = new ArrayList<>();
+        for (int i = 0; i < data.length; i++) {
+            byte current = data[i];
+            if (current == ESC) {
+                i++;
+                destuffedData.add((byte) (data[i] ^ 0x20));
+            } else {
+                destuffedData.add(current);
+            }
+        }
+        return convertListToArray(destuffedData);
+    }
+
+    private static byte[] convertListToArray(List<Byte> list) {
+        byte[] array = new byte[list.size()];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = list.get(i);
+        }
+        return array;
+    }
+
+    public static void printData(byte[] data) {
+        for (byte b : data) {
+            System.out.printf("%02X ", b & 0xFF);
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        byte[] originalData = {
+            (byte) 0x7E, (byte) 0x45, (byte) 0x7D,
+            (byte) 0x7E, (byte) 0x4A, (byte) 0x5C
+        };
+
+        System.out.print("Original Data: ");
+        printData(originalData);
+
+        byte[] stuffedData = byteStuffing(originalData);
+        System.out.print("Stuffed Data: ");
+        printData(stuffedData);
+
+        byte[] destuffedData = byteDestuffing(stuffedData);
+        System.out.print("Destuffed Data: ");
+        printData(destuffedData);
+    }
+}
